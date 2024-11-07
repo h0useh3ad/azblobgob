@@ -28,7 +28,7 @@ Usage of ./azblobgob:
   -containers string
     	Container names file (default "names.txt")
   -dest string
-    	Directory to save downloaded blobs (default: provided account name in current directory)
+    	Directory to save downloaded blob files (default "provided account name")
   -dirprefixes string
     	Directory prefix name file (default "names.txt")
   -socks string
