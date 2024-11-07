@@ -106,7 +106,7 @@ func downloadWorker(client *http.Client, jobs <-chan Blob, wg *sync.WaitGroup, v
 		if err := downloadFile(client, blob.URL, blob.Name); err != nil {
 			fmt.Printf("Failed to download %s: %v\n", blob.URL, err)
 		} else {
-			fmt.Printf("%sSuccessfully downloaded blob to %s%s\n", colorBlue, blob.Name, colorReset)
+			fmt.Printf("%sSuccessfully downloaded blob file to %s%s\n", colorBlue, blob.Name, colorReset)
 		}
 	}
 }
