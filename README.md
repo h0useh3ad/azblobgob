@@ -49,3 +49,10 @@ Included is a default file with directory and container names cloned from NetSpi
 
 ### Destination Directory
 The tool create a directory using the provided account name within the local directory. New directories will be created as needed where files are downloaded to mimic the blob directory structure.
+
+### Truffelhog
+The downloaded blobs can then be scanned locally with [truffelhog](https://github.com/trufflesecurity/trufflehog)
+```
+trufflehog filesystem <local-path>
+```
+See https://github.com/trufflesecurity/trufflehog/issues/769 for more details.
