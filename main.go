@@ -25,14 +25,6 @@ import (
 
 const version = "1.0"
 
-const (
-	colorReset  = "\033[0m"
-	colorRed    = "\033[31m"
-	colorGreen  = "\033[32m"
-	colorBlue   = "\033[34m"
-	colorYellow = "\033[33m"
-)
-
 type Blob struct {
 	Name string `xml:"Name"`
 	URL  string `xml:"Url"`
@@ -60,24 +52,21 @@ func readFile(filename string) ([]string, error) {
 	return lines, nil
 }
 
-func containerExists(client *http.Client, account, container string, verbose bool) bool {
+func containerExist(client *http.Client, account, container string, verbose bool) (bool, error) {
 	url := fmt.Sprintf("https://%s.blob.core.windows.net/%s?restype=container", account, container)
 	resp, err := client.Head(url)
 	if err != nil {
-		if verbose {
-			fmt.Printf("%sError checking container %s: %v%s\n", colorRed, container, err, colorReset)
-		}
-		return false
+		return false, fmt.Errorf("error checking container %s: %v", container, err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusOK {
-		fmt.Printf("%sContainer \"%s\" found!%s\n", colorGreen, container, colorReset)
-		return true
+		color.Green("Container \"%s\" found!\n", container)
+		return true, nil
 	}
 	if verbose {
-		fmt.Printf("%sContainer \"%s\" not found, skipping.%s\n", colorRed, container, colorReset)
+		color.Red("Container \"%s\" not found, skipping.\n", container)
 	}
-	return false
+	return false, nil
 }
 
 func downloadFile(client *http.Client, url, filepath string) error {
@@ -97,16 +86,16 @@ func downloadFile(client *http.Client, url, filepath string) error {
 	return err
 }
 
-func downloadWorker(client *http.Client, jobs <-chan Blob, wg *sync.WaitGroup, verbose bool) {
+func dlWorker(client *http.Client, jobs <-chan Blob, wg *sync.WaitGroup, verbose bool) {
 	defer wg.Done()
 	for blob := range jobs {
 		if verbose {
 			fmt.Printf("Downloading %s to %s\n", blob.URL, blob.Name)
 		}
 		if err := downloadFile(client, blob.URL, blob.Name); err != nil {
-			fmt.Printf("Failed to download %s: %v\n", blob.URL, err)
+			color.Red("Failed to download %s: %v\n", blob.URL, err)
 		} else {
-			fmt.Printf("%sSuccessfully downloaded blob file to %s%s\n", colorBlue, blob.Name, colorReset)
+			color.Blue("Successfully downloaded blob file to %s\n", blob.Name)
 		}
 	}
 }
@@ -127,7 +116,7 @@ func main() {
 	account := flag.String("account", "", "Azure Blob Storage account name")
 	containersFile := flag.String("containers", "names.txt", "Container names file")
 	dirPrefixesFile := flag.String("dirprefixes", "names.txt", "Directory prefix name file")
-	destinationDir := flag.String("dest", "provided account name", "Target directory to save downloaded blob files")
+	destinationDir := flag.String("output", "", "Target output directory to save downloaded blob files (default: provided account name)")
 	socksProxy := flag.String("socks", "", "SOCKS5 proxy address (e.g., 127.0.0.1:1080)")
 	showVersion := flag.Bool("version", false, "Display version information")
 	verbose := flag.Bool("verbose", false, "Enable verbose output")
@@ -166,7 +155,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	// SOCKS proxy support
+	// proxy support
 	var httpClient *http.Client
 	if *socksProxy != "" {
 		proxyURL, err := url.Parse("socks5://" + *socksProxy)
@@ -193,7 +182,12 @@ func main() {
 
 	validContainers := []string{}
 	for _, container := range containers {
-		if containerExists(httpClient, *account, container, *verbose) {
+		exists, err := containerExist(httpClient, *account, container, *verbose)
+		if err != nil {
+			color.Red("%v\n\n", err)
+			os.Exit(0)
+		}
+		if exists {
 			validContainers = append(validContainers, container)
 		}
 	}
@@ -202,7 +196,7 @@ func main() {
 		for _, prefix := range dirPrefixes {
 			url := fmt.Sprintf("https://%s.blob.core.windows.net/%s?restype=container&comp=list&prefix=%s", *account, container, prefix)
 			if *verbose {
-				fmt.Printf("%s\nRequesting Blob: %s%s\n", colorYellow, url, colorReset)
+				color.Yellow("\nRequesting Blob: %s\n", url)
 			}
 
 			response, err := httpClient.Get(url)
@@ -227,11 +221,11 @@ func main() {
 
 			if len(blobList.Blobs) == 0 {
 				if *verbose {
-					fmt.Printf("%s\nPrefix \"%s\" has no blobs in container \"%s\"!%s\n\n", colorRed, prefix, container, colorReset)
+					color.Red("\nPrefix \"%s\" has no blobs in container \"%s\"!\n\n", prefix, container)
 				}
 				continue
 			} else {
-				fmt.Printf("%s\nPrefix \"%s\" has blobs in container \"%s\"!%s\n\n", colorGreen, prefix, container, colorReset)
+				color.Green("\nPrefix \"%s\" has blobs in container \"%s\"!\n\n", prefix, container)
 			}
 
 			jobs := make(chan Blob, 10)
@@ -239,7 +233,7 @@ func main() {
 
 			for i := 0; i < 10; i++ {
 				wg.Add(1)
-				go downloadWorker(httpClient, jobs, &wg, *verbose)
+				go dlWorker(httpClient, jobs, &wg, *verbose)
 			}
 
 			for _, blob := range blobList.Blobs {
@@ -257,6 +251,6 @@ func main() {
 		}
 	}
 
-	color.Green("****** Finished ******")
+	color.Green("\n****** Finished ******")
 	fmt.Println()
 }
