@@ -26,11 +26,11 @@ Usage of ./azblobgob:
   -account string
     	Azure Blob Storage account name
   -containers string
-    	Container names file (default: containers.txt) (default "containers.txt")
+    	Container names file (default "names.txt")
   -dest string
     	Directory to save downloaded blobs (default: provided account name in current directory)
   -dirprefixes string
-    	Directory prefix name files (default "dirprefixes.txt")
+    	Directory prefix name file (default "names.txt")
   -socks string
     	SOCKS5 proxy address (e.g., 127.0.0.1:1080)
   -verbose
@@ -46,3 +46,6 @@ Only provide the account name, not the full URI.
 ### Containers and Directory Prefixes
 The containers and directory prefix files are new-line delimited files used to enumerate the Azure blobs. 
 Included is a default file with directory and container names cloned from NetSpi's [MicroBurst](https://github.com/NetSPI/MicroBurst) [permutations.txt](https://github.com/NetSPI/MicroBurst/blob/master/Misc/permutations.txt) file.
+
+### Destination Directory
+The tool create a directory using the provided account name within the local directory. New directories will be created as needed where files are downloaded to mimic the blob directory structure.
