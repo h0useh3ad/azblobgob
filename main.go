@@ -125,8 +125,8 @@ func main() {
 	}()
 
 	account := flag.String("account", "", "Azure Blob Storage account name")
-	containersFile := flag.String("containers", "containers.txt", "Container names file (default: containers.txt)")
-	dirPrefixesFile := flag.String("dirprefixes", "dirprefixes.txt", "Directory prefix name files")
+	containersFile := flag.String("containers", "names.txt", "Container names file (default: names.txt)")
+	dirPrefixesFile := flag.String("dirprefixes", "names.txt", "Directory prefix name files")
 	destinationDir := flag.String("dest", "", "Directory to save downloaded blobs (default: provided account name in current directory)")
 	socksProxy := flag.String("socks", "", "SOCKS5 proxy address (e.g., 127.0.0.1:1080)")
 	showVersion := flag.Bool("version", false, "Display version information")
