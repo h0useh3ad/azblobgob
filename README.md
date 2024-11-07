@@ -45,4 +45,4 @@ Only provide the account name, not the full URI.
 
 ### Containers and Directory Prefixes
 The containers and directory prefix files are new-line delimited files used to enumerate the Azure blobs. 
-Included is a default containers file cloned from NetSpi's [MicroBurst](https://github.com/NetSPI/MicroBurst) [permutations.txt](https://github.com/NetSPI/MicroBurst/blob/master/Misc/permutations.txt) file.
+Included is a default file with directory and container names cloned from NetSpi's [MicroBurst](https://github.com/NetSPI/MicroBurst) [permutations.txt](https://github.com/NetSPI/MicroBurst/blob/master/Misc/permutations.txt) file.
